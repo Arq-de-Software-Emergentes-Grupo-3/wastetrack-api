@@ -15,7 +15,8 @@ app = FastAPI(
     version="0.0.1",
 )
 origins = [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://waste-track.netlify.app",
 ]
 app.add_middleware(
     CORSMiddleware,
