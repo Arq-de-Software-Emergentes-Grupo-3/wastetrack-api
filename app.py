@@ -3,6 +3,7 @@ from routes.container import container
 from routes.auth import auth
 from routes.user import user
 from config.db import engine, Base
+from fastapi.middleware.cors import CORSMiddleware
 
 import models.container
 import models.user
@@ -12,6 +13,16 @@ import os
 app = FastAPI(
     title="Waste Track",
     version="0.0.1",
+)
+origins = [
+    "http://localhost:3000"
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 Base.metadata.create_all(bind=engine)
