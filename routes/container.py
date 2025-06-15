@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import math
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List
@@ -29,6 +30,42 @@ def get_containers_by_status(status: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Status must be 'active' or 'inactive'")
     containers = db.query(Container).filter(Container.status == status).all()
     return containers
+
+# GET containers nearby by guid
+@container.get(
+    "/get-nearby-containers/{guid}",
+    response_model=List[ContainerResponse],
+    description="Get nearby containers relative to a specific container by GUID",
+)
+def get_nearby_containers_by_guid(guid: str, db: Session = Depends(get_db)):
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371
+        phi1 = math.radians(float(lat1))
+        phi2 = math.radians(float(lat2))
+        d_phi = math.radians(float(lat2) - float(lat1))
+        d_lambda = math.radians(float(lon2) - float(lon1))
+        a = math.sin(d_phi/2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda/2)**2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
+
+    # Buscar contenedor base
+    ref = db.query(Container).filter(Container.guid == guid).first()
+    if not ref or not ref.latitude or not ref.longitude:
+        raise HTTPException(status_code=404, detail="Reference container not found or missing coordinates")
+
+    # Buscar todos los contenedores cercanos (excepto él mismo)
+    all_containers = db.query(Container).filter(Container.guid != guid).all()
+    nearby = []
+
+    for c in all_containers:
+        if c.latitude and c.longitude:
+            distance = haversine(ref.latitude, ref.longitude, c.latitude, c.longitude)
+            if distance <= 5:
+                nearby.append((distance, c))
+
+    nearby_sorted = sorted(nearby, key=lambda x: x[0])
+    return [c for _, c in nearby_sorted]
+
 
 # POST create container
 @container.post("/", response_model=dict, status_code=status.HTTP_201_CREATED, description="Create a new container")
@@ -112,5 +149,3 @@ def delete_container(guid: str, db: Session = Depends(get_db)):
     db.delete(container)
     db.commit()
     return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content={"message": "Container deleted successfully"})
-
-
