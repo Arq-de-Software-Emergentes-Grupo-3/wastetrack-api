@@ -4,7 +4,7 @@ from config.db import get_db
 from models.container import Container
 from models.simulation import Simulation
 from schemas.simulation import SimulationCreate, SimulationResponse
-from utils.route import generate_optimal_route
+from utils.routes_openai import call_openai_for_simulation
 from dependencies.auth import get_current_user
 from models.user import User
 from typing import List
@@ -46,7 +46,7 @@ def generate_simulation(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No valid containers found")
 
     # Generar ruta óptima
-    route_guids, distance_km, duration_min = generate_optimal_route(containers)
+    route_guids, distance_km, duration_min = call_openai_for_simulation(containers)
 
     # Guardar simulación
     simulation_entry = Simulation(
