@@ -1,10 +1,12 @@
 from fastapi import FastAPI
+from routes.simulation import simulation
 from routes.container import container
 from routes.auth import auth
 from routes.user import user
 from config.db import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
+import models.simulation
 import models.container
 import models.user
 import uvicorn
@@ -31,6 +33,7 @@ Base.metadata.create_all(bind=engine)
 app.include_router(auth, prefix="/api/v1")
 app.include_router(user, prefix="/api/v1")
 app.include_router(container, prefix="/api/v1")
+app.include_router(simulation, prefix="/api/v1")
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
