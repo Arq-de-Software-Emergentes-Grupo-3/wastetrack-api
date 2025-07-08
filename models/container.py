@@ -16,3 +16,4 @@ class Container(Base):
     capacity = Column(Integer, nullable=False)
     status = Column(Enum("active", "inactive", name="status_enum"), default="active")
     isFavorite = Column(Boolean, default=False)
+    limit = Column(Integer, nullable=False, default=100)

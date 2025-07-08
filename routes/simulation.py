@@ -23,9 +23,10 @@ def get_all_simulations(db: Session = Depends(get_db)):
             SimulationResponse(
                 id=sim.id,
                 created_at=sim.created_at,
-                distance_km=sim.distance_km,
+                total_distance_km=sim.total_distance_km,
                 duration_min=sim.duration_min,
-                route=json.loads(sim.route)
+                route=json.loads(sim.route),
+                distances=sim.distances
             )
         )
 
@@ -46,13 +47,14 @@ def generate_simulation(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No valid containers found")
 
     # Generar ruta óptima
-    route_guids, distance_km, duration_min = call_openai_for_simulation(containers)
+    route_guids, distances_json, total_distance_km, duration_min = call_openai_for_simulation(containers)
 
     # Guardar simulación
     simulation_entry = Simulation(
-        distance_km=distance_km,
+        total_distance_km=total_distance_km,
         duration_min=duration_min,
-        route=json.dumps(route_guids)
+        route=json.dumps(route_guids),
+        distances=distances_json
     )
 
     db.add(simulation_entry)
@@ -62,7 +64,8 @@ def generate_simulation(
     return SimulationResponse(
         id=simulation_entry.id,
         created_at=simulation_entry.created_at,
-        distance_km=simulation_entry.distance_km,
+        total_distance_km=simulation_entry.total_distance_km,
         duration_min=simulation_entry.duration_min,
-        route=route_guids
+        route=route_guids,
+        distances=distances_json
     )
