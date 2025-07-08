@@ -8,9 +8,10 @@ class SimulationCreate(BaseModel):
 class SimulationResponse(BaseModel):
     id: int
     created_at: datetime
-    distance_km: float
+    total_distance_km: float
     duration_min: float
     route: List[str]
+    distances: str
 
     class Config:
         orm_mode = True

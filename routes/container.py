@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List
 from models.container import Container
-from schemas.container import ContainerCreate, ContainerUpdate, ContainerResponse, FavoriteUpdate, CapacityUpdate
+from schemas.container import ContainerCreate, ContainerUpdate, ContainerResponse, FavoriteUpdate, CapacityUpdate, LimitUpdate
 from config.db import get_db
 
 container = APIRouter(prefix="/containers", tags=["Containers"])
@@ -139,6 +139,20 @@ def update_capacity(guid: str, payload: CapacityUpdate, db: Session = Depends(ge
     container.capacity = payload.capacity
     db.commit()
     return {"message": f"Container capacity updated to {payload.capacity}"}
+
+# PUT update limit
+@container.put("/{guid}/limit", response_model=dict, description="Update container limit")
+def update_limit(guid: str, payload: LimitUpdate, db: Session = Depends(get_db)):
+    container = db.query(Container).filter(Container.guid == guid).first()
+    if not container:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Container not found")
+
+    if payload.limit < 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Limit must be non-negative")
+
+    container.limit = payload.limit
+    db.commit()
+    return {"message": f"Container limit updated to {payload.limit}"}
 
 # DELETE container by GUID
 @container.delete("/{guid}", status_code=status.HTTP_204_NO_CONTENT, description="Delete a container by GUID")

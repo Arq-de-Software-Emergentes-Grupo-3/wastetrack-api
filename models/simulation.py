@@ -7,6 +7,7 @@ class Simulation(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    distance_km = Column(Float, nullable=False)
+    total_distance_km = Column(Float, nullable=False)
     duration_min = Column(Float, nullable=False)
     route = Column(String(1000), nullable=False)
+    distances = Column(String(5000), nullable=False)
