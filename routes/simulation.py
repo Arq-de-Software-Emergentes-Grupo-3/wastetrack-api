@@ -35,11 +35,10 @@ def get_all_simulations(db: Session = Depends(get_db)):
 @simulation.post("/generate-simulation", response_model=SimulationResponse, status_code=status.HTTP_201_CREATED)
 def generate_simulation(
     payload: SimulationCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db)
 ):
-    if current_user.role != "worker":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only workers can generate simulations")
+    # if current_user.role != "worker":
+    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only workers can generate simulations")
 
     containers = db.query(Container).filter(Container.guid.in_(payload.container_guids)).all()
 
